@@ -1,0 +1,190 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <random>
+#include <string.h> 
+using namespace std; 
+
+#define questionScore 1
+#define questionAmount 5
+
+class Question {
+public:
+    int askQuestion(int num = -1);
+    friend istream& operator >> (istream& is, Question& ques);
+
+private:
+    string question_text;
+    string answer_1;
+    string answer_2;
+    string answer_3;
+    char correct_answer;
+};
+
+
+void StartQuiz(ifstream data);
+void load(istream& is, vector<Question>& questions);
+void Shuffle(vector<Question>& questions);
+void ScorePrint(vector<Question>& questions);
+
+int main()
+{
+    
+   cout << "THIS IS A QUIZ IN WHICH YOU NEED TO ENTER AT LEAST 5 QUESTION FORMS."<< endl;
+   cout << "ONE FORM INCLUDES QUESTION,ANSWER1,ANSWER2,ANSWER3 AND THE RIGHT ANSWER(1,2 OR 3)." << endl;
+   cout << "PRESS STOP IN CAPS TO MAKE THE QUESTIONS END (MINUMUM 5 QUESTIONS)"<< endl;
+   cout << "AFTER THIS YOU WILL START THE MULTIPLE CHOICE QUIZ. AT THE END THERE WILL BE YOUR SCORE AND ALL ENTERED QUESTIONS WILL BE THERE AS WELL"<< endl<< endl; 
+   
+   char data[100];
+   char number1[100]="1";
+   char number2[100]="2";
+   char number3[100]="3";
+   char stop[100]="STOP";
+   int i=0;
+   // open a file in write mode.
+   ofstream outfile;
+   outfile.open("quiz.txt");
+   
+   //quiz making loop
+   while(1<2){
+   cout << "Enter a question:"; 
+   cin.getline(data, 100);
+   if(i>= 5 && strcmp (data,stop) == 0){
+       goto JUMP;//break
+   }
+   if(strcmp (data,stop) != 0){
+   outfile << data << endl;
+   }
+   cout << "Enter first answer: "; 
+   cin.getline(data, 100);
+   outfile << data << endl;
+   cout << "Enter second answer: "; 
+   cin.getline(data, 100);
+   outfile << data << endl;
+   cout << "Enter third answer: "; 
+   cin.getline(data, 100);
+   outfile << data << endl;
+   
+   while(strcmp (data,number1) != 0 && strcmp (data,number2) != 0 && strcmp (data,number3) != 0){
+   cout << "Enter RIGHT answer(1,2 or 3): "; 
+   
+   cin.getline(data, 100);
+   if(strcmp (data,number1) != 0 && strcmp (data,number2) != 0 && strcmp (data,number3) != 0){
+       cout<<"Try Again"<<endl;
+   }
+   }
+   outfile << data << endl;
+   i++;
+   }
+   JUMP:
+   outfile.close(); 
+    
+    
+    
+    
+    
+    StartQuiz(ifstream("quiz.txt")); //Begin the quiz
+ 
+    return 0;
+}
+
+
+
+void StartQuiz(ifstream data)//Starts the quiz
+{
+    if (data.is_open())
+    {
+        
+        vector<Question> questions;
+        load(data, questions);
+        Shuffle(questions);
+        ScorePrint(questions);
+        ifstream f("quiz.txt");
+
+
+    if (f.is_open())
+        cout << "The questions:"<< "\n"<< f.rdbuf();
+    }
+    else
+    {
+        cout << "Error: File not found!\n";
+    }
+    cin.get();
+}
+
+istream& operator >> (istream& is, Question& ques)
+{
+    string line;
+    while (getline(is, line))
+    {
+        if (line.size() == 0)
+            continue;
+        break;
+    }
+    ques.question_text = line;
+    getline(is, ques.answer_1);
+    getline(is, ques.answer_2);
+    getline(is, ques.answer_3);
+    is >> ques.correct_answer;
+    return is;
+}
+
+void load(istream& is, vector<Question>& questions)
+{
+    Question q;
+    while (is >> q)
+        questions.push_back(q);
+}
+
+int Question::askQuestion(int num) //asks the question. 
+{
+    int score = 0;
+    cout << "\n";
+    if (num > 0)
+    cout << question_text << "\n";
+    cout << "1) " << answer_1 << "\n";
+    cout << "2) " << answer_2 << "\n";
+    cout << "3) " << answer_3 << "\n";
+
+    //Asks for answer.
+    char guess = ' ';
+    cout << "Enter your answer:";
+    cin >> guess;
+
+    if (guess == correct_answer) {
+        cout << "Correct";
+        score = questionScore;
+        cin.get();
+        cin.get();
+    }
+    else
+    {
+        cout << "Wrong, right answer is " << correct_answer << ".\n";
+        cin.get();
+        cin.get();
+    }
+    return score;
+}
+
+void Shuffle(vector<Question>& questions) //Shuffle the questions. 
+{
+    random_device rd;
+    mt19937 randomGenerator(rd());
+    shuffle(questions.begin(), questions.end(), randomGenerator);
+}
+
+void ScorePrint(vector<Question>& questions)
+{
+    int total = 0; //Total score.
+
+    //Keep track of score.
+    for (size_t i = 0; i < questionAmount; ++i)
+    {
+        total += questions[i].askQuestion(i + 1);
+    }
+    //Print Total score.
+        cout << "\n\n";
+        cout << "You scored " << total << " out of 5!\n";
+}
